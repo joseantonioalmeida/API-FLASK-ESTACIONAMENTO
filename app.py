@@ -6,7 +6,7 @@ app.json.sort_keys = False #type:ignore
 
 
 from views.customers_view import *
-from views.vehicles_view import *
+from views.vehicle_view import *
 from views.parking_record_view import *
 from views.auth_user_view import *
 from views.parking_spot_view import *
