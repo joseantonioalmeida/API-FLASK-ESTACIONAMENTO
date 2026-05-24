@@ -1,13 +1,39 @@
 from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
+from datetime import datetime
 
+
+def check_and_release_expired_spots(cursor):
+    """
+    Função utilitária para liberar automaticamente no banco de dados
+    as vagas cujo tempo de ocupação já expirou, garantindo que não 
+    afete novas reservas ativas na mesma vaga.
+    """
+    sql = """
+        UPDATE parking_spot pr_spot
+        SET pr_spot.is_occupied = 0
+        WHERE pr_spot.is_occupied = 1
+          AND pr_spot.id NOT IN (
+              -- Mantém ocupada se houver algum registro onde o tempo de saída ainda não chegou
+              SELECT DISTINCT parking_spot_id
+              FROM parking_record
+              WHERE exit_time > NOW() 
+                AND parking_spot_id IS NOT NULL
+          )
+    """
+    cursor.execute(sql)
 
 @app.route('/parking-spots/', methods=['GET'])
 def get_parking_spots():
     try:
         banco = connect_db()
         cursor = banco.cursor()
+
+        # Atualiza o status caso o tempo de algum registro tenha expirado
+        check_and_release_expired_spots(cursor)
+        banco.commit()
+
         # Seleciona todas as colunas da tabela parking_spot
         sql = 'SELECT id, spot_number, is_occupied, created_at, updated_at FROM parking_spot;'
         cursor.execute(sql)
@@ -27,7 +53,8 @@ def get_parking_spots():
 
         lista_spots_json_ordenada = sorted(
             lista_spots_json,
-            key=lambda x: x['spot_number']
+            key=lambda x: x['spot_number'],
+            reverse=True
         )
 
         return make_response(
@@ -46,6 +73,10 @@ def get_parking_spot_detail(id):
     try:
         banco = connect_db()
         cursor = banco.cursor()
+        # Atualiza o status caso o tempo de algum registro tenha expirado
+        check_and_release_expired_spots(cursor)
+        banco.commit()
+        
         sql = 'SELECT id, spot_number, is_occupied, created_at, updated_at FROM parking_spot WHERE id = %s;'
         cursor.execute(sql, (id,))
         spot = cursor.fetchone()
@@ -72,7 +103,6 @@ def create_parking_spot():
         dados_recebidos = request.get_json()
         
         spot_number = dados_recebidos.get("spot_number")
-        # Default value da imagem é 0 (False) se não enviado
         is_occupied = dados_recebidos.get("is_occupied", 0) 
 
         if not spot_number:
@@ -81,14 +111,12 @@ def create_parking_spot():
         banco = connect_db()
         cursor = banco.cursor()
         
-        # As colunas created_at e updated_at usam CURRENT_TIMESTAMP automático do MySQL
         sql = 'INSERT INTO parking_spot (spot_number, is_occupied) VALUES (%s, %s);'
         cursor.execute(sql, (spot_number, is_occupied))
         banco.commit()
 
         id_criado = cursor.lastrowid
         
-        # Busca o registro criado para retornar os dados na resposta
         sql = 'SELECT id, spot_number, is_occupied, created_at, updated_at FROM parking_spot WHERE id = %s;'
         cursor.execute(sql, (id_criado,))
         s = cursor.fetchone()
