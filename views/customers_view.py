@@ -1,9 +1,11 @@
 from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
+from utils import login_required
 
 
 @app.route('/customers/', methods=['GET'])
+@login_required
 def get_customers():
     try:
         banco = connect_db()
@@ -40,6 +42,7 @@ def get_customers():
         return make_response(jsonify(mensagem='Erro interno ao listar clientes.', erro=str(e)), 500)
 
 @app.route('/customers/<int:id>/', methods=['GET'])
+@login_required
 def get_customer(id):
     try:
         banco = connect_db()
@@ -71,6 +74,7 @@ def get_customer(id):
 
 
 @app.route('/customers/', methods=['POST'])
+@login_required
 def create_customer():
     try:
         dados_recebidos = request.get_json()
@@ -115,6 +119,7 @@ def create_customer():
         return make_response(jsonify(mensagem="Erro interno ao criar cliente.", erro=str(e)), 500)
 
 @app.route('/customers/<int:id>/', methods=['PUT'])
+@login_required
 def put_customer(id):
     try:
         banco = connect_db()
@@ -167,6 +172,7 @@ def put_customer(id):
         return make_response(jsonify(mensagem="Erro interno ao atualizar o cliente.", erro=str(e)), 500)
 
 @app.route('/customers/<int:id>/', methods=['DELETE'])
+@login_required
 def delete_customer(id):
     try:
         banco = connect_db()

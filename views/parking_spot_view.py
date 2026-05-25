@@ -2,6 +2,7 @@ from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
 from datetime import datetime
+from utils import login_required
 
 
 def check_and_release_expired_spots(cursor):
@@ -25,6 +26,7 @@ def check_and_release_expired_spots(cursor):
     cursor.execute(sql)
 
 @app.route('/parking-spots/', methods=['GET'])
+@login_required
 def get_parking_spots():
     try:
         banco = connect_db()
@@ -69,6 +71,7 @@ def get_parking_spots():
 
 
 @app.route('/parking-spots/<int:id>/', methods=['GET'])
+@login_required
 def get_parking_spot_detail(id):
     try:
         banco = connect_db()
@@ -98,6 +101,7 @@ def get_parking_spot_detail(id):
 
 
 @app.route('/parking-spots/', methods=['POST'])
+@login_required
 def create_parking_spot():
     try:
         dados_recebidos = request.get_json()
@@ -135,6 +139,7 @@ def create_parking_spot():
 
 
 @app.route('/parking-spots/<int:id>/', methods=['PUT'])
+@login_required
 def put_parking_spot(id):
     try:
         banco = connect_db()
@@ -178,6 +183,7 @@ def put_parking_spot(id):
 
 
 @app.route('/parking-spots/<int:id>/', methods=['DELETE'])
+@login_required
 def delete_parking_spot(id):
     try:
         banco = connect_db()

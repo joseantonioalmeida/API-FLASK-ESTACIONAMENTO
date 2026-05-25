@@ -1,9 +1,11 @@
 from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
+from utils import login_required
 
 
 @app.route('/vehicle-types/', methods=['GET'])
+@login_required
 def get_vehicle_types():
     try:
         banco = connect_db()
@@ -40,6 +42,7 @@ def get_vehicle_types():
 
 
 @app.route('/vehicle-types/<int:id>/', methods=['GET'])
+@login_required
 def get_vehicle_type_detail(id):
     try:
         banco = connect_db()
@@ -63,6 +66,7 @@ def get_vehicle_type_detail(id):
 
 
 @app.route('/vehicle-types/', methods=['POST'])
+@login_required
 def create_vehicle_type():
     try:
         dados_recebidos = request.get_json()
@@ -99,6 +103,7 @@ def create_vehicle_type():
 
 
 @app.route('/vehicle-types/<int:id>/', methods=['PUT'])
+@login_required
 def put_vehicle_type(id):
     try:
         banco = connect_db()
@@ -140,6 +145,7 @@ def put_vehicle_type(id):
 
 
 @app.route('/vehicle-types/<int:id>/', methods=['DELETE'])
+@login_required
 def delete_vehicle_type(id):
     try:
         banco = connect_db()
