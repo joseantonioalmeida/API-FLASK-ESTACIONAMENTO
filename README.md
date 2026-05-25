@@ -28,17 +28,17 @@ python app.py
 ---
 
 ## 📋 Sumário
-- [Características](#características)
-- [Requisitos](#requisitos)
-- [Instalação](#instalação)
-- [Configuração](#configuração)
-- [Como Usar](#como-usar)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Endpoints](#endpoints)
-- [Autenticação](#autenticação)
-- [Documentação Adicional](#documentação-adicional)
-- [Contribuindo](#contribuindo)
-- [Licença](#licença)
+- [Características](#-características)
+- [Requisitos](#-requisitos)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Como Usar](#-como-usar)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Endpoints](#-endpoints)
+- [Autenticação](#-autenticação)
+- [Documentação Adicional](#-documentação-adicional)
+- [Contribuindo](#-contribuindo)
+- [Licença](#-licença)
 
 ---
 
