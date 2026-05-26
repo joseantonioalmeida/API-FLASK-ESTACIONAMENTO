@@ -1,9 +1,11 @@
 from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
+from utils import login_required
 
 
 @app.route('/users/', methods=['GET'])
+@login_required
 def get_users():
     try:
         banco = connect_db()
@@ -43,6 +45,7 @@ def get_users():
 
 
 @app.route('/users/<int:id>/', methods=['GET'])
+@login_required
 def get_user_detail(id):
     try:
         banco = connect_db()
@@ -77,6 +80,7 @@ def get_user_detail(id):
 
 
 @app.route('/users/', methods=['POST'])
+@login_required
 def create_user():
     try:
         dados_recebidos = request.get_json()
@@ -126,6 +130,7 @@ def create_user():
 
 
 @app.route('/users/<int:id>/', methods=['PUT'])
+@login_required
 def put_user(id):
     try:
         banco = connect_db()
@@ -178,6 +183,7 @@ def put_user(id):
 
 
 @app.route('/users/<int:id>/', methods=['DELETE'])
+@login_required
 def delete_user(id):
     try:
         banco = connect_db()
