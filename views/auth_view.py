@@ -1,13 +1,13 @@
 from app import app
 from db.connect_db import connect_db
-from flask import make_response, jsonify, request, session
+from flask import make_response, jsonify, request
 from flask_mail import Mail, Message
 import random
 import string
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-from utils import login_required
+from jwt_utils import gerar_token_jwt, token_requerido
 
 
 load_dotenv()
@@ -171,17 +171,19 @@ def login():
                 403
             )
         
-        # Cria a sessão
-        session['usuario_id'] = usuario[0]
-        session['usuario_email'] = usuario[2]
+        # Gera um token JWT
+        token = gerar_token_jwt(usuario[0], usuario[2], usuario[1])
         
         usuario_json = {
-            "id": usuario[0],
-            "username": usuario[1],
-            "email": usuario[2],
-            "first_name": usuario[5],
-            "last_name": usuario[6],
-            "mensagem": "Login realizado com sucesso!"
+            "mensagem": "Login realizado com sucesso!",
+            "token": token,
+            "usuario": {
+                "id": usuario[0],
+                "username": usuario[1],
+                "email": usuario[2],
+                "first_name": usuario[5],
+                "last_name": usuario[6]
+            }
         }
         
         return make_response(
@@ -197,18 +199,17 @@ def login():
 
 
 @app.route('/auth/logout/', methods=['POST'])
-@login_required
+@token_requerido
 def logout():
     """
     Rota para fazer logout da aplicação.
+    
+    NOTA: Com JWT, o logout é feito no cliente descartando o token.
+    Esta rota é apenas informativa.
     """
     try:
-        # Remove dados da sessão
-        session.pop('usuario_id', None)
-        session.pop('usuario_email', None)
-        
         return make_response(
-            jsonify(mensagem="Logout realizado com sucesso."),
+            jsonify(mensagem="Logout realizado com sucesso. Descarte o token no cliente."),
             200
         )
         
@@ -220,7 +221,7 @@ def logout():
 
 
 @app.route('/auth/password-recovery/', methods=['POST'])
-@login_required
+@token_requerido
 def password_recovery():
     """
     Rota para recuperar senha enviando um código por email.
@@ -321,7 +322,7 @@ Sistema de Estacionamento"""
 
 
 @app.route('/auth/password-reset/', methods=['PUT'])
-@login_required
+@token_requerido
 def password_reset():
     """
     Rota para resetar a senha usando o código de recuperação.

@@ -1,11 +1,11 @@
 from app import app
 from db.connect_db import connect_db
 from flask import make_response, jsonify, request
-from utils import login_required
+from jwt_utils import token_requerido
 
 
 @app.route('/vehicles/', methods=['GET'])
-@login_required
+@token_requerido
 def get_vehicles():
     try:
         banco = connect_db()
@@ -45,7 +45,7 @@ def get_vehicles():
 
 
 @app.route('/vehicles/<int:id>/', methods=['GET'])
-@login_required
+@token_requerido
 def get_vehicle(id):
     try:
         banco = connect_db()
@@ -79,7 +79,7 @@ def get_vehicle(id):
 
 
 @app.route('/vehicles/', methods=['POST'])
-@login_required
+@token_requerido
 def create_vehicle():
     try:
         dados_recebidos = request.get_json()
@@ -146,7 +146,7 @@ def create_vehicle():
 
 
 @app.route('/vehicles/<int:id>/', methods=['PUT'])
-@login_required
+@token_requerido
 def put_vehicle(id):
     try:
         banco = connect_db()
@@ -205,7 +205,7 @@ def put_vehicle(id):
 
 
 @app.route('/vehicles/<int:id>/', methods=['DELETE'])
-@login_required
+@token_requerido
 def delete_vehicle(id):
     try:
         banco = connect_db()
