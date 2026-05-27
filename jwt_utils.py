@@ -14,6 +14,9 @@ SECRET_KEY = os.getenv('jwt_secret_key', 'change-me-to-a-secure-key')
 ALGORITHM = 'HS256'
 TOKEN_EXPIRATION_HOURS = 24  # Token válido por 24 horas
 
+# Blacklist de tokens inválidos (logout)
+# Formato: {token_jti: data_expiracao}
+token_blacklist = {}
 
 def gerar_token_jwt(usuario_id: int, usuario_email: str, usuario_username: str) -> str:
     """
@@ -97,6 +100,45 @@ def extrair_token_do_header(authorization_header: str) -> str:
     return partes[1]
 
 
+def limpar_blacklist_expirada():
+    """
+    Remove tokens expirados da blacklist para economizar memória.
+    """
+    global token_blacklist
+    tokens_expirados = [
+        token for token, data_exp in token_blacklist.items() 
+        if datetime.utcnow() > data_exp
+    ]
+    for token in tokens_expirados:
+        token_blacklist.pop(token, None)
+
+
+def adicionar_token_blacklist(token: str, data_expiracao: datetime):
+    """
+    Adiciona um token à blacklist (usado no logout).
+    
+    Args:
+        token: Token JWT a ser inválido
+        data_expiracao: Data de expiração do token
+    """
+    global token_blacklist
+    limpar_blacklist_expirada()
+    token_blacklist[token] = data_expiracao
+
+
+def token_esta_na_blacklist(token: str) -> bool:
+    """
+    Verifica se um token está na blacklist.
+    
+    Args:
+        token: Token JWT a verificar
+    
+    Returns:
+        True se o token está na blacklist, False caso contrário
+    """
+    return token in token_blacklist
+
+
 def token_requerido(f):
     """
     Decorator que verifica se um token JWT válido foi fornecido.
@@ -129,6 +171,13 @@ def token_requerido(f):
         try:
             # Extrai o token do header
             token = extrair_token_do_header(auth_header)
+            
+            # Verifica se o token está na blacklist (foi feito logout)
+            if token_esta_na_blacklist(token):
+                return make_response(
+                    jsonify(mensagem="Token inválido. Você foi desconectado (logout realizado). Faça login novamente."),
+                    401
+                )
             
             # Valida o token e obtém o payload
             payload = validar_token_jwt(token)

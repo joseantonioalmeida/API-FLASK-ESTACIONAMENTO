@@ -7,7 +7,8 @@ import string
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-from jwt_utils import gerar_token_jwt, token_requerido
+from jwt_utils import gerar_token_jwt, token_requerido, extrair_token_do_header, validar_token_jwt, adicionar_token_blacklist
+import jwt
 
 
 load_dotenv()
@@ -204,12 +205,29 @@ def logout():
     """
     Rota para fazer logout da aplicação.
     
-    NOTA: Com JWT, o logout é feito no cliente descartando o token.
-    Esta rota é apenas informativa.
+    Invalida o token JWT adicionando-o à blacklist.
+    O token não poderá mais ser utilizado para acessar rotas protegidas.
     """
     try:
+        # Extrai o token do header Authorization
+        auth_header = request.headers.get('Authorization')
+        token = extrair_token_do_header(auth_header) #type:ignore
+        
+        # Decodifica o token para obter a data de expiração
+        try:
+            payload = validar_token_jwt(token)
+            data_expiracao = datetime.utcfromtimestamp(payload['exp'])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
+            return make_response(
+                jsonify(mensagem="Token inválido.", erro=str(e)),
+                401
+            )
+        
+        # Adiciona o token à blacklist
+        adicionar_token_blacklist(token, data_expiracao)
+        
         return make_response(
-            jsonify(mensagem="Logout realizado com sucesso. Descarte o token no cliente."),
+            jsonify(mensagem="Logout realizado com sucesso. Token invalidado. Você agora precisa fazer login novamente para acessar as rotas protegidas."),
             200
         )
         
